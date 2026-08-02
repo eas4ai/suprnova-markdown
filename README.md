@@ -44,7 +44,22 @@ suprnova_markdown::alternate_link("https://example.com/docs/routing")
 // <link rel="alternate" type="text/markdown" href="https://example.com/docs/routing.md">
 ```
 
-## The four decisions
+## Where the convention comes from
+
+The `.md`-appended URL is the llms.txt proposal's own suggestion (Jeremy
+Howard, 3 September 2024): provide "a clean markdown version of those pages at
+the same URL as the original page, but with `.md` appended"
+([llmstxt.org](https://llmstxt.org/)). Stripe, Cloudflare and Anthropic all
+publish an `llms.txt`; the twin convention is common enough to have picked up
+a name, the Markdown Twin Pattern, and static-site generators and Next.js /
+Vite plugins already automate it.
+
+Nothing here is novel. What this crate adds is doing it for a server-rendered
+SPA - where the HTML genuinely carries no prose, so the twin is the only text
+a non-executing client can get - behind an interface narrow enough to be
+reused.
+
+## The defaults, and why
 
 **A distinct URL, not content negotiation.** Serving different bodies at one
 URL based on `User-Agent` is cloaking and search engines treat it as such.
@@ -54,11 +69,14 @@ separate URL is cacheable, linkable, and testable with `curl`.
 
 **`rel="alternate"` for discovery.** The same relation an RSS feed uses to
 announce an alternative representation of the current document. A client that
-understands HTML link relations learns nothing new.
+understands HTML link relations learns nothing new, and the twin stops being a
+URL convention callers must know in advance.
 
 **`X-Robots-Tag: noindex` on the twin, by default.** It is the same content as
 the page; letting both compete splits ranking signals. `.indexable()` turns it
-off for the case where markdown is the canonical form.
+off for the case where markdown is the canonical form. This one is a judgment
+call rather than part of the convention - plenty of implementations leave the
+twins indexable.
 
 **`charset=utf-8`, always.** Technical prose is full of arrows and
 box-drawing. A client that guesses latin-1 renders them as mojibake.
