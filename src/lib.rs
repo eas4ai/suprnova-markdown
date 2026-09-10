@@ -90,7 +90,7 @@ impl MarkdownMiddleware {
     }
 
     fn respond(&self, body: String) -> HttpResponse {
-        let mut response = HttpResponse::bytes_body(body.into_bytes(), MARKDOWN_TYPE)
+        let mut response = HttpResponse::bytes(body.into_bytes().into(), MARKDOWN_TYPE)
             .header("Cache-Control", format!("public, max-age={}", self.max_age));
         if self.noindex {
             response = response.header("X-Robots-Tag", "noindex");
@@ -144,8 +144,14 @@ mod tests {
 
     #[test]
     fn resolves_the_page_behind_a_twin() {
-        assert_eq!(page_path("/docs/routing.md").as_deref(), Some("/docs/routing"));
-        assert_eq!(page_path("/blog/topcoat.md").as_deref(), Some("/blog/topcoat"));
+        assert_eq!(
+            page_path("/docs/routing.md").as_deref(),
+            Some("/docs/routing")
+        );
+        assert_eq!(
+            page_path("/blog/topcoat.md").as_deref(),
+            Some("/blog/topcoat")
+        );
         // Not twins.
         assert_eq!(page_path("/docs/routing"), None);
         assert_eq!(page_path("/.md"), None);

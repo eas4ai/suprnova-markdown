@@ -91,6 +91,8 @@ crate doesn't generate them, but the twins are what they should link to.
 
 ## Status
 
-Built against `suprnova` v0.9.1. Extracted from
+Targets Suprnova 1.3.7 at revision
+`107e6e7a122d5145160ea1547ca90ddc37459c27`, matching the directory starter.
+Requires Rust 1.94 or later. Extracted from
 [suprnova.app](https://suprnova.app), where the pattern runs in production -
 see `/llms.txt`, `/llms-full.txt`, and the `.md` twin of any manual chapter.

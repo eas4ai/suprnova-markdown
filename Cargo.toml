@@ -2,12 +2,12 @@
 name = "suprnova-markdown"
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.91.1"
+rust-version = "1.94.0"
 description = "Markdown twins of an app's prose pages, for AI agents and crawlers that don't run JavaScript"
 license = "MIT"
 
 [dependencies]
-suprnova = { git = "https://github.com/entrepeneur4lyf/suprnova", tag = "v0.9.1" }
+suprnova = { git = "https://github.com/eas4ai/suprnova.git", rev = "107e6e7a122d5145160ea1547ca90ddc37459c27" }
 async-trait = "0.1"
 
 [dev-dependencies]
