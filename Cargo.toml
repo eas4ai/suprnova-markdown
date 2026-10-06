@@ -7,7 +7,7 @@ description = "Markdown twins of an app's prose pages, for AI agents and crawler
 license = "MIT"
 
 [dependencies]
-suprnova = { git = "https://github.com/eas4ai/suprnova.git", rev = "3229aa9af542c991196274fa3c235cdce88a68e2" }
+suprnova = { git = "https://github.com/eas4ai/suprnova.git", rev = "2bd4bd53d04fa4581fdbb152ebd70cfb682b342c" }
 async-trait = "0.1"
 
 [dev-dependencies]

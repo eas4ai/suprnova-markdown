@@ -91,8 +91,8 @@ crate doesn't generate them, but the twins are what they should link to.
 
 ## Status
 
-Targets Suprnova 2.0.0 at the exact release revision
-`3229aa9af542c991196274fa3c235cdce88a68e2`. Consumers must use the same
+Targets Suprnova 3.2.1 at the exact release revision
+`2bd4bd53d04fa4581fdbb152ebd70cfb682b342c`. Consumers must use the same
 framework revision so middleware and request types share one crate identity.
 Requires Rust 1.94 or later. Extracted from
 [suprnova.app](https://suprnova.app), where the pattern runs in production -
