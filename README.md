@@ -97,3 +97,7 @@ framework revision so middleware and request types share one crate identity.
 Requires Rust 1.94 or later. Extracted from
 [suprnova.app](https://suprnova.app), where the pattern runs in production -
 see `/llms.txt`, `/llms-full.txt`, and the `.md` twin of any manual chapter.
+
+## Upgrading
+
+See [UPGRADE.md](UPGRADE.md) for compatible framework pins, consumer checks and rollback.
