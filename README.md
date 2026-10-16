@@ -44,6 +44,27 @@ suprnova_markdown::alternate_link("https://example.com/docs/routing")
 // <link rel="alternate" type="text/markdown" href="https://example.com/docs/routing.md">
 ```
 
+## What your source must check
+
+The middleware trusts your `MarkdownSource` completely. It runs as global
+middleware, before the router, so the route groups' sign-in and permission
+checks never run for a `.md` request. It answers every HTTP method, and by
+default it marks the response `public, max-age=3600`. So:
+
+- Return Markdown only for pages anyone may read: published, public, not
+  members-only. Check that on every request, inside `markdown()`, from the
+  current data. A lookup that finds any article by its slug hands out drafts
+  to whoever guesses the address.
+- If a page can stop being public (unpublished, deleted, made private), keep
+  shared caches from serving the old copy: `.max_age(0)`, or wrap the
+  response with `Cache-Control: no-store`.
+- Returning `None` falls through to the normal routes, so a lookup error
+  looks like "no twin". If an error must not pass silently, record it in the
+  source and answer from a wrapping middleware.
+- To answer only `GET` and `HEAD`, check the method in a wrapping middleware.
+
+The directory starter's `src/seo/markdown.rs` does all four.
+
 ## Where the convention comes from
 
 The `.md`-appended URL is the llms.txt proposal's own suggestion (Jeremy
