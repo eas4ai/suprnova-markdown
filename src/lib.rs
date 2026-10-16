@@ -102,6 +102,11 @@ impl MarkdownMiddleware {
 #[async_trait]
 impl Middleware for MarkdownMiddleware {
     async fn handle(&self, request: Request, next: Next) -> Response {
+        // A twin is something to read. Any other method goes to the router
+        // without the source seeing it.
+        if !matches!(request.method().as_str(), "GET" | "HEAD") {
+            return next(request).await;
+        }
         let Some(page_path) = page_path(request.path()) else {
             return next(request).await;
         };

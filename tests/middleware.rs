@@ -51,3 +51,42 @@ async fn missing_twins_and_ordinary_pages_preserve_router_responses() {
         assert_eq!(response.header_value("X-Robots-Tag"), None);
     }
 }
+
+/// A source that fails the test if the middleware consults it.
+struct Untouchable;
+
+#[async_trait]
+impl MarkdownSource for Untouchable {
+    async fn markdown(&self, path: &str) -> Option<String> {
+        panic!("the source must not be consulted for {path}");
+    }
+}
+
+#[tokio::test]
+async fn only_get_and_head_consult_the_source() {
+    for method in ["POST", "PUT", "PATCH", "DELETE", "OPTIONS"] {
+        let next: Next =
+            Arc::new(|_| Box::pin(async { Ok(HttpResponse::text("router response")) }));
+        let result = MarkdownMiddleware::new(Untouchable)
+            .handle(Request::for_test(method, "/docs/routing.md"), next)
+            .await;
+        let response = match result {
+            Ok(response) => response,
+            Err(_) => panic!("{method} on a twin URL must reach the router"),
+        };
+        assert_eq!(response.body(), b"router response", "{method}");
+    }
+}
+
+#[tokio::test]
+async fn head_is_answered_like_get() {
+    let next: Next = Arc::new(|_| panic!("a Markdown twin must not reach the router"));
+    let result = MarkdownMiddleware::new(Content)
+        .handle(Request::for_test("HEAD", "/docs/routing.md"), next)
+        .await;
+    let response = match result {
+        Err(response) => response,
+        Ok(_) => panic!("HEAD on a twin must short-circuit like GET"),
+    };
+    assert_eq!(response.header_value("Content-Type"), Some(MARKDOWN_TYPE));
+}
