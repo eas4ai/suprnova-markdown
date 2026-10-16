@@ -91,9 +91,12 @@ crate doesn't generate them, but the twins are what they should link to.
 
 ## Status
 
-Version 0.1.1 targets Suprnova 3.2.1 at the exact release revision
-`2bd4bd53d04fa4581fdbb152ebd70cfb682b342c`. Consumers must use the same
-framework revision so middleware and request types share one crate identity.
+Version 0.2.0 targets Suprnova 4.1.0 through `tag = "v4.1.0"` (commit
+`3aa40bd7c266d41d86a21c0eebbbb1d5a2d09d1d`). Consumers must name the
+framework the same way - the same Git URL and `tag = "v4.1.0"` - so middleware
+and request types share one crate identity; a `rev` for the same commit is a
+different identity. The plugin turns off the framework's default features, so
+the app's own feature list stays in charge. Suprnova 3.2.1 apps stay on 0.1.1.
 Requires Rust 1.94 or later. Extracted from
 [suprnova.app](https://suprnova.app), where the pattern runs in production -
 see `/llms.txt`, `/llms-full.txt`, and the `.md` twin of any manual chapter.
