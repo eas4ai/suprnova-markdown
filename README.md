@@ -17,25 +17,31 @@ GET /docs/routing.md   →  text/markdown     the source it came from
 ## Use
 
 ```rust
-use suprnova::async_trait;
+use suprnova::{FrameworkError, async_trait};
 use suprnova_markdown::{MarkdownMiddleware, MarkdownSource};
 
 struct Content;
 
 #[async_trait]
 impl MarkdownSource for Content {
-    async fn markdown(&self, path: &str) -> Option<String> {
+    async fn markdown(&self, path: &str) -> Result<Option<String>, FrameworkError> {
         // The page's path, suffix already stripped: `/docs/routing`.
-        let slug = path.strip_prefix("/docs/")?;
-        std::fs::read_to_string(format!("content/docs/{slug}.md")).ok()
+        let Some(slug) = path.strip_prefix("/docs/") else {
+            return Ok(None);
+        };
+        Ok(std::fs::read_to_string(format!("content/docs/{slug}.md")).ok())
     }
 }
 
 global_middleware!(MarkdownMiddleware::new(Content));
 ```
 
-That is the whole integration. No controller knows the twins exist; returning
-`None` falls through to the normal routes.
+That is the whole integration. No controller knows the twins exist.
+`Ok(None)`, or an error with status 404, falls through to the normal routes.
+Any other error is logged and answered with a plain 500 that carries none of
+the error's text and is not cached, so a broken source never looks like a
+missing page. Only `GET` and `HEAD` consult the source; other methods go
+straight to the router.
 
 Advertise the twin in the page's `<head>`:
 
@@ -48,8 +54,8 @@ suprnova_markdown::alternate_link("https://example.com/docs/routing")
 
 The middleware trusts your `MarkdownSource` completely. It runs as global
 middleware, before the router, so the route groups' sign-in and permission
-checks never run for a `.md` request. It answers every HTTP method, and by
-default it marks the response `public, max-age=3600`. So:
+checks never run for a `.md` request, and by default it marks the response
+`public, max-age=3600`. So:
 
 - Return Markdown only for pages anyone may read: published, public, not
   members-only. Check that on every request, inside `markdown()`, from the
@@ -58,12 +64,12 @@ default it marks the response `public, max-age=3600`. So:
 - If a page can stop being public (unpublished, deleted, made private), keep
   shared caches from serving the old copy: `.max_age(0)`, or wrap the
   response with `Cache-Control: no-store`.
-- Returning `None` falls through to the normal routes, so a lookup error
-  looks like "no twin". If an error must not pass silently, record it in the
-  source and answer from a wrapping middleware.
-- To answer only `GET` and `HEAD`, check the method in a wrapping middleware.
+- Return the lookup's errors rather than `Ok(None)`: a failure then answers
+  500 instead of quietly showing whatever the router has for that URL.
 
-The directory starter's `src/seo/markdown.rs` does all four.
+The directory starter's `src/seo/markdown.rs` checks eligibility and caching
+this way (it predates 0.3.0, so it also wraps the method and error handling
+the plugin now does itself).
 
 ## Where the convention comes from
 
@@ -112,7 +118,7 @@ crate doesn't generate them, but the twins are what they should link to.
 
 ## Status
 
-Version 0.2.0 targets Suprnova 4.1.0 through `tag = "v4.1.0"` (commit
+Version 0.3.0 targets Suprnova 4.1.0 through `tag = "v4.1.0"` (commit
 `3aa40bd7c266d41d86a21c0eebbbb1d5a2d09d1d`). Consumers must name the
 framework the same way - the same Git URL and `tag = "v4.1.0"` - so middleware
 and request types share one crate identity; a `rev` for the same commit is a

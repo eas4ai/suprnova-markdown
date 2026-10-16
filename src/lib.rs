@@ -9,15 +9,17 @@
 //!
 //! ```no_run
 //! use suprnova_markdown::{MarkdownSource, MarkdownMiddleware};
-//! use suprnova::async_trait;
+//! use suprnova::{FrameworkError, async_trait};
 //!
 //! struct Content;
 //!
 //! #[async_trait]
 //! impl MarkdownSource for Content {
-//!     async fn markdown(&self, path: &str) -> Option<String> {
-//!         let slug = path.strip_prefix("/docs/")?;
-//!         std::fs::read_to_string(format!("content/docs/{slug}.md")).ok()
+//!     async fn markdown(&self, path: &str) -> Result<Option<String>, FrameworkError> {
+//!         let Some(slug) = path.strip_prefix("/docs/") else {
+//!             return Ok(None);
+//!         };
+//!         Ok(std::fs::read_to_string(format!("content/docs/{slug}.md")).ok())
 //!     }
 //! }
 //!
@@ -36,7 +38,7 @@
 
 use std::sync::Arc;
 
-use suprnova::{HttpResponse, Middleware, Next, Request, Response, async_trait};
+use suprnova::{FrameworkError, HttpResponse, Middleware, Next, Request, Response, async_trait};
 
 /// The IANA type from RFC 7763. `charset` is not optional in practice:
 /// technical prose is full of arrows and box-drawing, and a client that
@@ -47,11 +49,22 @@ pub const MARKDOWN_TYPE: &str = "text/markdown; charset=utf-8";
 ///
 /// The path is the *page's* path, with the `.md` suffix already removed - an
 /// implementation sees `/docs/routing`, not `/docs/routing.md`, so the same
-/// function can serve both surfaces. Returning `None` means "no twin here",
-/// and the request falls through to the normal routes.
+/// function can serve both surfaces.
+///
+/// - `Ok(Some(markdown))` serves the twin.
+/// - `Ok(None)`, or an error whose status is 404, means "no twin here", and
+///   the request falls through to the normal routes.
+/// - Any other error is a failed lookup. It is logged, and the client gets a
+///   plain 500 with `Cache-Control: no-store` and none of the error's text;
+///   the request does not fall through, so a broken source never looks like
+///   a missing page.
+///
+/// The middleware runs before the router, so route-level sign-in and
+/// permission checks do not apply: return Markdown only for pages anyone
+/// may read.
 #[async_trait]
 pub trait MarkdownSource: Send + Sync + 'static {
-    async fn markdown(&self, path: &str) -> Option<String>;
+    async fn markdown(&self, path: &str) -> Result<Option<String>, FrameworkError>;
 }
 
 /// Answers `*.md` with markdown and passes everything else through.
@@ -111,13 +124,27 @@ impl Middleware for MarkdownMiddleware {
             return next(request).await;
         };
 
+        // `Err` is how a middleware short-circuits; it is the response, not
+        // a failure.
         match self.source.markdown(&page_path).await {
-            // `Err` is how a middleware short-circuits; it is the response,
-            // not a failure.
-            Some(body) => Err(self.respond(body)),
-            None => next(request).await,
+            Ok(Some(body)) => Err(self.respond(body)),
+            Ok(None) => next(request).await,
+            Err(error) if error.status_code() == 404 => next(request).await,
+            Err(error) => {
+                tracing::error!(path = %page_path, %error, "Markdown twin lookup failed");
+                Err(lookup_failed())
+            }
         }
     }
+}
+
+/// What the client gets when the source fails: no details, nothing cached,
+/// nothing indexed.
+fn lookup_failed() -> HttpResponse {
+    HttpResponse::text("The Markdown version of this page could not be loaded.")
+        .status(500)
+        .header("Cache-Control", "no-store")
+        .header("X-Robots-Tag", "noindex")
 }
 
 /// The page a `.md` request is the twin of, or `None` if it isn't one.
@@ -177,8 +204,8 @@ mod tests {
 
     #[async_trait]
     impl MarkdownSource for Fixed {
-        async fn markdown(&self, path: &str) -> Option<String> {
-            (path == "/docs/routing").then(|| "# Routing\n\nArrows: →\n".to_string())
+        async fn markdown(&self, path: &str) -> Result<Option<String>, FrameworkError> {
+            Ok((path == "/docs/routing").then(|| "# Routing\n\nArrows: →\n".to_string()))
         }
     }
 

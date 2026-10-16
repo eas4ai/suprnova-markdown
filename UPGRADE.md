@@ -1,5 +1,18 @@
 # Upgrade Guide
 
+## Markdown plugin 0.2.0 → 0.3.0
+
+Plugin `v0.3.0` still targets Suprnova 4.1.0 through `tag = "v4.1.0"`. It moves two safety checks that apps had to wrap around the middleware into the plugin, and that changes the trait.
+
+- **`MarkdownSource::markdown` returns `Result<Option<String>, FrameworkError>`.** `Ok(Some(markdown))` serves the twin. `Ok(None)` and an error with status 404 fall through to the router, as `None` did. Any other error is logged with `tracing` and answered with a plain-text 500, `Cache-Control: no-store` and `X-Robots-Tag: noindex`; the error's text never reaches the client, and the request does not fall through. Port a source by wrapping its result in `Ok(...)` and returning lookup errors with `?` instead of turning them into `None`.
+- **Only `GET` and `HEAD` consult the source.** Other methods on a `.md` URL go to the router without the source seeing them.
+
+Unchanged: `MarkdownMiddleware`, `indexable`, `max_age`, `alternate_link`, the response headers of a served twin, and the `public, max-age=3600` default. The source still decides what is public; see "What your source must check" in the README.
+
+A wrapper like the directory starter's `PublicMarkdown`, which checks the method and records source failures itself, keeps working once its source is ported to the new signature; its own checks become redundant.
+
+Update a consumer by changing the tag to `v0.3.0`, porting each `MarkdownSource`, and running `cargo update -p suprnova-markdown`, `cargo check --locked --all-targets` and `cargo test --locked`. The release passed four unit tests, six middleware tests and one doctest.
+
 ## Markdown plugin 0.1.1 → 0.2.0
 
 Plugin `v0.2.0` targets Suprnova 4.1.0 through `tag = "v4.1.0"` (commit `3aa40bd7c266d41d86a21c0eebbbb1d5a2d09d1d`). Apps still on Suprnova 3.2.1 stay on `v0.1.1`.
