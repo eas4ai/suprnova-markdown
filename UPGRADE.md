@@ -1,5 +1,48 @@
 # Upgrade Guide
 
+## Markdown plugin 0.3.0 → 0.4.0
+
+Plugin `v0.4.0` targets Suprnova 4.2.0 through `tag = "v4.2.0"` (commit
+`6f6f83feae1dfde97d614d083625872987407780`). Suprnova 4.1.0 apps stay on
+`v0.3.0`. The plugin API and response behavior are unchanged from 0.3.0.
+Consumers upgrading from 0.1.x or 0.2.x must also port `MarkdownSource` to
+the fallible signature described below.
+
+Use the same framework Git URL and `tag = "v4.2.0"` for the app and any
+direct framework adapters. Keep the app's selected features; the plugin
+still disables default features and enables `testing` only for its own tests.
+
+```toml
+suprnova = { git = "https://github.com/eas4ai/suprnova.git", tag = "v4.2.0", default-features = false, features = [] } # replace [] with your app's feature list
+suprnova-markdown = { git = "https://github.com/eas4ai/suprnova-markdown.git", tag = "v0.4.0" }
+```
+
+Update and verify the consumer:
+
+```bash
+cargo update -p suprnova -p suprnova-markdown
+cargo tree -d
+cargo check --locked --all-targets
+cargo test --locked
+```
+
+Verify that Cargo resolves exactly one Suprnova identity at the commit above.
+Check publication eligibility, Unicode, missing-source fallback and failed
+lookup responses as described below. The default public cache policy remains
+one hour; applications whose content can become private must retain their
+explicit cache restrictions. The framework's 4.2 cookie/cache changes do not
+replace those source eligibility checks.
+
+Verification for this release: `cargo fmt --check`, `cargo test --locked`
+(four unit tests, six middleware tests and one doctest), and
+`cargo check --locked --lib` passed. A separate consumer dependency graph
+resolved one Suprnova 4.2 identity without default or testing features.
+Full application acceptance remains each consumer's responsibility.
+
+There is no plugin database migration. Preserve the prior manifest and lockfile
+together for rollback; concurrent framework/application migrations need the
+host application's backup and restore procedure.
+
 ## Markdown plugin 0.2.0 → 0.3.0
 
 Plugin `v0.3.0` still targets Suprnova 4.1.0 through `tag = "v4.1.0"`. It moves two safety checks that apps had to wrap around the middleware into the plugin, and that changes the trait.
