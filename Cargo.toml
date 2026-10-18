@@ -1,21 +1,21 @@
 [package]
 name = "suprnova-markdown"
-version = "0.4.0"
+version = "0.5.0"
 edition = "2024"
 rust-version = "1.94.0"
 description = "Markdown twins of an app's prose pages, for AI agents and crawlers that don't run JavaScript"
 license = "MIT"
 
 [dependencies]
-# The same source selector as the app (`tag = "v4.2.0"`): another selector
+# The same source selector as the app (`tag = "v4.3.0"`): another selector
 # for the same commit is a second crate identity, and the middleware types
 # stop matching. No default features: the app picks the framework's
 # features, and the plugin needs none of them.
-suprnova = { git = "https://github.com/eas4ai/suprnova.git", tag = "v4.2.0", default-features = false }
+suprnova = { git = "https://github.com/eas4ai/suprnova.git", tag = "v4.3.0", default-features = false }
 async-trait = "0.1"
 tracing = "0.1"
 
 [dev-dependencies]
 # `Request::for_test` is behind the framework's `testing` feature since 4.0.
-suprnova = { git = "https://github.com/eas4ai/suprnova.git", tag = "v4.2.0", default-features = false, features = ["testing"] }
+suprnova = { git = "https://github.com/eas4ai/suprnova.git", tag = "v4.3.0", default-features = false, features = ["testing"] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }

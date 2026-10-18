@@ -1,5 +1,41 @@
 # Upgrade Guide
 
+## Markdown plugin 0.4.0 → 0.5.0
+
+Plugin `v0.5.0` targets Suprnova 4.3.0 through `tag = "v4.3.0"` (commit
+`2e0c5227b9090c47894169c0d545b40eb27c3641`). Suprnova 4.2.0 apps stay on
+`v0.4.0`. The plugin API and response behavior are unchanged from 0.4.0.
+
+Use the same framework Git URL and `tag = "v4.3.0"` for the app and any
+direct framework adapters, such as `suprnova-oauth-github` `v0.4.8`. Keep the
+app's selected features; the plugin still disables default features and
+enables `testing` only for its own tests.
+
+```toml
+suprnova = { git = "https://github.com/eas4ai/suprnova.git", tag = "v4.3.0", default-features = false, features = [] } # replace [] with your app's feature list
+suprnova-markdown = { git = "https://github.com/eas4ai/suprnova-markdown.git", tag = "v0.5.0" }
+```
+
+Update and verify the consumer:
+
+```bash
+cargo update -p suprnova -p suprnova-markdown
+cargo tree -d
+cargo check --locked --all-targets
+cargo test --locked
+```
+
+Verify that Cargo resolves exactly one Suprnova identity at the commit above.
+The publication eligibility, cache policy and failed-lookup checks described
+below still apply.
+
+Verification for this release: `cargo fmt --check`, `cargo test --locked`
+(four unit tests, six middleware tests and one doctest), and
+`cargo check --locked --lib` passed.
+
+There is no plugin database migration. Keep the prior manifest and lockfile
+together for rollback.
+
 ## Markdown plugin 0.3.0 → 0.4.0
 
 Plugin `v0.4.0` targets Suprnova 4.2.0 through `tag = "v4.2.0"` (commit
