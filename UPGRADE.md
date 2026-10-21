@@ -1,5 +1,18 @@
 # Upgrade Guide
 
+## Markdown plugin 0.5.2 → 0.5.3
+
+Plugin `v0.5.3` targets Suprnova 4.5.1 through `tag = "v4.5.1"` (commit
+`e05635e801781f62a2115f7c2b90bcecb9cf8f35`). Suprnova 4.5.0 apps stay on
+`v0.5.2`. The plugin API and response behavior are unchanged from 0.5.2; the
+release moves the lock file past the open RustSec advisories for `ammonia`,
+`quinn-proto`, `rustls`, `rustls-webpki`, `webpki-roots` and `webpki-root-certs`.
+
+Use the same framework Git URL and `tag = "v4.5.1"` for the app and any
+direct framework adapters, such as `suprnova-oauth-github` `v0.4.11`. Keep the
+app's selected features; the plugin still disables default features and
+enables `testing` only for its own tests.
+
 ## Markdown plugin 0.5.1 → 0.5.2
 
 Plugin `v0.5.2` targets Suprnova 4.5.0 through `tag = "v4.5.0"` (commit
