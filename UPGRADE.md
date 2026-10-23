@@ -1,5 +1,16 @@
 # Upgrade Guide
 
+## Markdown plugin 0.5.5 → 0.5.6
+
+Plugin `v0.5.6` targets Suprnova 4.6.2 through `tag = "v4.6.2"` (commit
+`1c8b2d07b65b120337b06c975522f850a340a418`). Suprnova 4.6.1 apps stay on
+`v0.5.5`. The plugin API and response behavior are unchanged from 0.5.5.
+
+Use the same framework Git URL and `tag = "v4.6.2"` for the app and any
+direct framework adapters, such as `suprnova-oauth-github` `v0.4.14`. Keep the
+app's selected features; the plugin still disables default features and
+enables `testing` only for its own tests.
+
 ## Markdown plugin 0.5.4 → 0.5.5
 
 Plugin `v0.5.5` targets Suprnova 4.6.1 through `tag = "v4.6.1"` (commit
