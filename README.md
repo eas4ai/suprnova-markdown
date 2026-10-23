@@ -118,9 +118,9 @@ crate doesn't generate them, but the twins are what they should link to.
 
 ## Status
 
-Version 0.5.3 targets Suprnova 4.5.1 through `tag = "v4.5.1"` (commit
-`e05635e801781f62a2115f7c2b90bcecb9cf8f35`). Consumers must name the
-framework the same way - the same Git URL and `tag = "v4.5.1"` - so middleware
+Version 0.5.4 targets Suprnova 4.6.0 through `tag = "v4.6.0"` (commit
+`cdf953217bfdae4d4a90d845ca78d14d02b54d53`). Consumers must name the
+framework the same way - the same Git URL and `tag = "v4.6.0"` - so middleware
 and request types share one crate identity; a `rev` for the same commit is a
 different identity. The plugin turns off the framework's default features, so
 the app's own feature list stays in charge. Suprnova 4.2.0 apps stay on 0.4.0;
